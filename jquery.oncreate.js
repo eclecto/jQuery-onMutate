@@ -1,6 +1,6 @@
 ;
 /*!
- * jQuery onCreate plugin v1.0
+ * jQuery onCreate plugin v1.1-dev
  * http://jquery.com/
  *
  * Copyright 2014 CROmetrics
@@ -104,7 +104,7 @@
                 } else {
                     observer = current.observer = setInterval(mutcallback, 50);
                 }
-            }
+            } else { mutcallback(); }
             return this;
         }
     });
