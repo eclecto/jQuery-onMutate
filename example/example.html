@@ -1,0 +1,116 @@
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>onCreate - jsFiddle demo by eclecto</title>
+
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.js"></script>
+
+    <style type="text/css">
+        body {
+            font-family: sans-serif;
+        }
+        #content {
+            max-width:800px;
+            margin:auto;
+        }
+        .bluebox {
+            background-color: #0000ff;
+            padding: 1em;
+            margin: 1em 0;
+            color: #ffffff;
+            font-family: Arial, sansserif;
+            text-align: center;
+        }
+        .greenbox {
+            background-color: #00ff00;
+            padding: 1em;
+            margin: 1em 0;
+            font-family: Arial, sansserif;
+            text-align: center;
+        }
+        .container {
+            width: 45%;
+            float: left;
+            box-sizing: border-box;
+            padding: 1em;
+            margin-bottom: 1em;
+            border: 1px solid #cccccc;
+        }
+        .container:nth-child(2n+1) {
+            margin-right: 5%;
+        }
+        p {
+            margin-top: 0;
+        }
+    </style>
+
+    <script type="text/javascript" src="../jquery.oncreate.js"></script>
+
+    <script type="text/javascript">        
+        (function($) { $(function() {
+            // Code that creates a new element after page load.
+            $('input[type=button]').click(function () {
+                $(this).parent().append('<div class="bluebox">This is a blue box.</div>');
+            });
+            
+            // Implementation of plugin.
+            $.onCreate.debug = true;
+            
+            function docCreate () {
+                 $('#count').html($('.bluebox, .greenbox').length);
+            };
+            $.onCreate('.bluebox', docCreate, true);
+
+            $('#norepeat').onCreate('.bluebox', function (elements) {
+                elements.removeClass('bluebox').addClass('greenbox').text('This is a green box');
+            });
+            $('#alreadythere-norepeat').onCreate('.bluebox', function (elements) {
+                elements.removeClass('bluebox').addClass('greenbox').text('This is a green box');
+            });
+            $('#repeat').onCreate('.bluebox', function (elements) {
+                elements.removeClass('bluebox').addClass('greenbox').text('This is a green box');
+            }, true);
+            $('#alreadythere-repeat').onCreate('.bluebox', function (elements) {
+                elements.removeClass('bluebox').addClass('greenbox').text('This is a green box');
+            }, true);
+            $('#alreadythere-repeat').onCreate('.bluebox, .greenbox', function (elements) {
+                elements.css('background-color', '#ff00ff').text('This is a magenta box');
+            });
+            
+            $.onCreate('detach', '.greenbox', docCreate);
+        });})(jQuery);
+    </script>
+
+
+</head>
+
+<body>
+    <div id="content">
+        <h1>jQuery onCreate plugin</h1>
+        <div id="norepeat" class="container">
+            <p>This container will change any blue box that appears to a green box, once.</p>
+            <input type="button" value="Click to create a blue box.">
+        </div>
+        <div id="repeat" class="container">
+            <p>This container will change any blue box that appears to a green box, forever.</p>
+            <input type="button" value="Click to create a blue box.">
+        </div>
+        <div class="container" id="alreadythere-norepeat" style="clear:left">
+            <p>This container will change any blue box that appears to a green box, once. It already has a blue box, so no further blue boxes should be changed.</p>
+            <input type="button" value="Click to create a blue box.">
+            <div class="greenbox" data-oc-processed-33160bbb-bc60-4c3b-826d-d885f58cab32="true" data-oc-processed-8c89aab4-77af-4acb-a8cc-3501e6a8e92b="true">This is a green box</div>
+        </div>
+        <div class="container" id="alreadythere-repeat">
+            <p>This container will change any current or future blue boxes to green boxes.</p>
+            <input type="button" value="Click to create a blue box.">
+            <div class="greenbox" data-oc-processed-33160bbb-bc60-4c3b-826d-d885f58cab32="true" data-oc-processed-58213d35-c6c8-4b06-81ce-b2c96757a954="true" data-oc-processed-aa29da48-db7c-4303-afdc-472e494a9e9b="true" style="background-color: rgb(255, 0, 255);">This is a magenta box</div>
+        </div>
+        <div class="container" id="created">
+            <p>Total boxes:</p>
+            <p id="count">2</p>
+        </div>
+    </div>
+</body>
+
+</html>
