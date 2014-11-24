@@ -6,7 +6,7 @@
  * Released under the MIT license
  * https://github.com/eclecto/jQuery-onCreate/blob/master/LICENSE
  *
- * Date: 2014-11-10T12:12Z
+ * Date: 2014-11-24T09:46Z
  */
 
 /* jshint expr: true */
