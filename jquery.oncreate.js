@@ -1,5 +1,5 @@
 /*!
- * jQuery onCreate plugin v1.1-dev
+ * jQuery onCreate plugin v1.1
  * http://jquery.com/
  *
  * Copyright 2014 CROmetrics
