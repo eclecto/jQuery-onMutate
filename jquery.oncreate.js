@@ -20,6 +20,35 @@
         return;
     }
     
+    function Observer(mutcallback) {
+        var realObserver;
+        
+        if (MutationObserver) {
+            realObserver = new MutationObserver(mutcallback);
+        }
+        
+        this.observe = function(parent) {
+            if (MutationObserver) {
+                realObserver.observe(parent, {
+                    childList: true,
+                    subtree: true
+                });
+            } else {
+                realObserver = setInterval(mutcallback, 50);
+            }
+        };
+        
+        this.disconnect = function() {
+            if(realObserver) {
+                if (MutationObserver) {
+                    realObserver.disconnect();
+                } else {
+                    clearInterval(realObserver);
+                }
+            }
+        };
+    }
+    
     function debug() {
         if($.onCreate.debug) {
             var warn = Function.prototype.bind.call(console.warn, console);
@@ -83,31 +112,20 @@
                             }
                             if (cblist.length === 0) {
                                 if (observer) {
-                                    if (MutationObserver) {
-                                        observer.disconnect();
-                                    } else {
-                                        clearInterval(observer);
-                                    }
+                                    observer.disconnect();
                                 } else {
                                     return true;
                                 }
                             }
                         }
                     };
-                    // Idiot test: run the callback on initialization to see if there is already a valid element.
+                // Sanity Check: run the callback on initialization to see if there is already a valid element.
                 if (mutcallback()) {
                     return this;
-                }
-
-                if (MutationObserver) {
-                    observer = current.observer = new MutationObserver(mutcallback);
-                    observer.observe($(this)[0], {
-                        childList: true,
-                        subtree: true
-                    });
-                } else {
-                    observer = current.observer = setInterval(mutcallback, 50);
-                }
+                }                
+                
+                observer = current.observer = new Observer(mutcallback);
+                observer.observe($this[0]);
             }
             return this;
         },
@@ -118,11 +136,7 @@
                 // Detach everything.
                 for(i in oc) {
                     sel = oc[i];
-                    if(MutationObserver) {
-                        sel.observer.disconnect();
-                    } else {
-                        clearInterval(sel.observer);
-                    }
+                    if(sel.observer) sel.observer.disconnect();
                 }
                 // Remove all the onCreate data but leave the original object intact so any future attachments will go faster.
                 delete oc[i];
@@ -130,11 +144,7 @@
                 if(oc[selector]) {                
                     sel = oc[selector];
                     if(typeof(callback) === 'undefined') {    
-                        if(MutationObserver) {
-                            sel.observer.disconnect();
-                        } else {
-                            clearInterval(sel.observer);
-                        }
+                        sel.observer.disconnect();
                         delete oc[selector];
                     } else if (typeof(callback) === 'function') {
                         var cblist = sel.callbacks;
@@ -146,11 +156,7 @@
                         }
                         if (cblist.length === 0) {
                             if (sel.observer) {
-                                if (MutationObserver) {
-                                    sel.observer.disconnect();
-                                } else {
-                                    clearInterval(sel.observer);
-                                }
+                                sel.observer.disconnect();
                             } else {
                                 return true;
                             }
