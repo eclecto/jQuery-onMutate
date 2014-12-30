@@ -112,9 +112,11 @@
           minWidth: 194,
           minHeight: 18
         }).onModify('style', "width: 325px; height: 244px", function (elements) {
+          console.log('big');
           elements.removeClass('bluebox greenbox').addClass('redbox');
         }, true)
           .onModify('style', "width: 194px; height: 18px", function (elements) {
+            console.log('small');
             elements.removeClass('bluebox redbox').addClass('greenbox');
           }, true)
           .onModify('style', function (elements) {

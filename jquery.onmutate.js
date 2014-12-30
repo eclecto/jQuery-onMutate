@@ -143,19 +143,17 @@
           observer, i, attrmatch,
           // This method filters out elements that have already been processed by the current callback.
           filter = function (index, element) {
-            console.log(callbacks[i]);
             return !$(element).attr('data-oc-processed-' + callbacks[i].cbid);
           },
           // Iterate through the changed attributes and see if there is a match to the modify listener's conditions.
-          checkattrs = type !== MODIFY ? null : function (index, mutation) {
+          checkattrs = type !== MODIFY ? undefined : function (index, mutation) {
             var attrname = mutation.attributeName,
               attrval = $this.attr(attrname),
-              curMatch = callbacks[i].match,
-              attrs = callbacks[i].conditions ? callbacks[i].conditions[0] : null,
-              match = callbacks[i].conditions && callbacks[i].conditions[1] ? callbacks[i].conditions[1] : null;
+              attrs = callbacks[i].conditions ? callbacks[i].conditions[0] : undefined,
+              match = callbacks[i].conditions && callbacks[i].conditions[1] ? callbacks[i].conditions[1] : undefined;
             if (!attrs || attrs.indexOf(attrname) > -1) {
-              if (typeof (curMatch) !== 'undefined') {
-                if (attrval.search(curMatch) >= 0) {
+              if (typeof (match) !== 'undefined') {
+                if (attrval.search(match) >= 0) {
                   attrmatch = true;
                   return false;
                 }
@@ -204,7 +202,8 @@
             }
 
             // We've safely iterated through the callbacks, so don't ignore this master callback anymore.
-            if (oc.ignore) oc.ignore = false;
+            // Additional mutation events apparently fire after this entire function, so we set ignore to false with an extremely small delay.
+            if (oc.ignore) setTimeout(function(){oc.ignore = false;},1);
             if (callbacks.length === 0) {
               if (observer) {
                 observer.disconnect();
@@ -251,7 +250,7 @@
         type = options.type,
         callback = options.callback,
         selector = options.selector,
-        watchedattrs = options.attrs ? options.attrs.split(' ') : null;
+        watchedattrs = options.attrs ? options.attrs.split(' ') : undefined;
       if ((type === CREATE && typeof (selector) === 'undefined') || (type === MODIFY && typeof (callback) === 'undefined')) {
         // Detach everything.
         if (type === CREATE) {
