@@ -52,7 +52,7 @@
         }
     </style>
 
-    <script type="text/javascript" src="../jquery.oncreate.js"></script>
+    <script type="text/javascript" src="../jquery.onmutate.js"></script>
 
     <script type="text/javascript">
         (function ($) {
@@ -63,7 +63,7 @@
                 });
 
                 // Implementation of plugin.
-                $.onCreate.debug = true; // Turn on debug mode so the console can help detect errors.                
+                //$.onCreate.debug = true; // Turn on debug mode so the console can help detect errors.                
 
                 // Basic onModify, matching ANY property change.
                 $('#norepeat .box').onModify(function (elements) {
