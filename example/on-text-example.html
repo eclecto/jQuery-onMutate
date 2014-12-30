@@ -2,7 +2,7 @@
 
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <title>onMutate Demo: onModify</title>
+  <title>onMutate Demo: onText</title>
 
   <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
   <script src="//code.jquery.com/jquery-1.10.2.js"></script>
@@ -59,17 +59,17 @@
       $(function () {
         // Code that modifies an element.
         $('input.modify').click(function () {
-          $(this).parent().find('.bluebox').removeClass('bluebox').addClass('greenbox').text('This is a green box');
+          $(this).parent().find('.bluebox').contents()[0].nodeValue = "This is a green box.";
         });
 
         // Implementation of plugin.
         //$.onCreate.debug = true; // Turn on debug mode so the console can help detect errors.                
 
         // Basic onModify, matching ANY property change.
-        $('#norepeat .box').onModify(function (elements) {
-          elements.removeClass('greenbox').addClass('bluebox').text('This is still a blue box');
+        $('#norepeat .box').onText(function (elements) {
+          elements.text('This is still a blue box');
         });
-        $('#norepeat .detach').click(function () {
+        /*$('#norepeat .detach').click(function () {
           $('#norepeat .box').onModify('detach'); // Detaches all callbacks associated with that selector, but leaves any other onCreate observers on the parent element alone.
         });
 
@@ -122,7 +122,7 @@
           .onModify('style', function (elements) {
             var pixels = (elements.outerWidth() * elements.outerHeight()).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
             elements.contents()[0].textContent = 'This box has ' + pixels + ' pixels.';
-          }, true);
+          }, true);*/
       });
     })(jQuery);
   </script>
@@ -130,11 +130,11 @@
 
 <body>
   <div id="page">
-    <h1>jQuery onMutate plugin: onModify</h1>
+    <h1>jQuery onMutate plugin: onText</h1>
     <div id="content">
       <div id="norepeat" class="container">
-        <p>This container will change the box back to blue if it turns green, once.</p>
-        <input type="button" class="modify" value="Turn the box green">
+        <p>This container will correct the text of the box if it changes, once.</p>
+        <input type="button" class="modify" value="Make the box claim it is green.">
         <input type="button" class="detach" value="Remove this listener" />
         <div class="box bluebox">This is a blue box</div>
       </div>
