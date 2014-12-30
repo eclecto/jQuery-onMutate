@@ -12,6 +12,9 @@
 (function ($, MutationObserver, document, window) {
   var cbid = 0;
 
+  // Uncomment this to easily test the setInterval fallback.
+  //MutationObserver = null;
+
   // MutationObserver = false; // Test C/B fallbacks.
   // Check for the existence of jQuery.
   if (!$.fn.jquery) {
@@ -173,11 +176,11 @@
             }
 
             // Find elements that have not already been processed by this observer.
-            var elements = type === CREATE ? $(conditions, $this) : $this;
+            var selected = type === CREATE ? $(conditions, $this) : $this;
 
-            if (elements.length > 0) {
+            if (selected.length > 0) {
               for (i = callbacks.length - 1; i >= 0; i--) {
-                if(type === CREATE) elements = elements.filter(filter);
+                var elements = selected.filter(filter);
 
                 // Validate changed attributes for modify observers.
                 if (type === MODIFY) {
@@ -190,7 +193,7 @@
                 }
 
                 if (elements.length > 0 && (type === CREATE || attrmatch)) {
-                  if (type === CREATE || multi === false) elements.attr('data-oc-processed-' + callbacks[i].cbid, true);
+                  if (type === CREATE) elements.attr('data-oc-processed-' + callbacks[i].cbid, true);
                   callbacks[i].callback.call($this, elements);
                   // Remove callback from the list if it only runs once.
                   if (!callbacks[i].multi) {
@@ -201,7 +204,7 @@
             }
 
             // We've safely iterated through the callbacks, so don't ignore this master callback anymore.
-            if(oc.ignore) oc.ignore = false;
+            if (oc.ignore) oc.ignore = false;
             if (callbacks.length === 0) {
               if (observer) {
                 observer.disconnect();
@@ -218,32 +221,33 @@
         observer = oc.observer = new Observer(mutcallback, type);
         var init;
         switch (type) {
-          case CREATE:
-            init = {
-              childList: true,
-              subtree: true
-            };
-            break;
-          case MODIFY:
-            init = {
-              attributes: true
-            };
-            if(conditions) {
-              init.attributeFilter = conditions[0].split(' ');
-            }
-            break;
-          case TEXT:
-            init = {
-              characterData: true
-            };
-            break;
+        case CREATE:
+          init = {
+            childList: true,
+            subtree: true
+          };
+          break;
+        case MODIFY:
+          init = {
+            attributes: true
+          };
+          if (conditions) {
+            init.attributeFilter = conditions[0].split(' ');
+          }
+          break;
+        case TEXT:
+          init = {
+            characterData: true
+          };
+          break;
         }
         observer.observe($this[0], init);
       }
       return this;
     },
     detach: function (options) {
-      var current, oc = this.data('onMutate')[type], i,
+      var current, oc = this.data('onMutate')[type],
+        i,
         type = options.type,
         callback = options.callback,
         selector = options.selector,
@@ -352,7 +356,7 @@
         if (typeof (args[1]) === 'function') {
           return methods[method].call(this, {
             type: MODIFY,
-            conditions: args[0],
+            conditions: [args[0]],
             callback: args[1],
             multi: args[2]
           });
