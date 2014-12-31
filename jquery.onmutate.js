@@ -13,7 +13,7 @@
     var cbid = 0;
 
     // Uncomment this to easily test the setInterval fallback.
-    // MutationObserver = null;
+    //MutationObserver = null;
 
     // MutationObserver = false; // Test C/B fallbacks.
     // Check for the existence of jQuery.
@@ -37,6 +37,7 @@
 
         // MutationObserver.observe() polyfill
         this.observe = function (element, init) {
+            console.log(init);
             if (MutationObserver) {
                 realObserver = realObserver || new MutationObserver(mutcallback);
                 realObserver.observe(element, init);
@@ -57,6 +58,13 @@
         };
     }
 
+    /*function debug() {
+    if ($.onCreate.debug) {
+      var warn = Function.prototype.bind.call(console.warn, console);
+      warn.apply(console, arguments);
+    }
+  }*/
+
     // Create a map of an element's attributes so we can poll for changes (non-MutationObserver browsers)
     function attributeMap(element) {
         var map = {};
@@ -71,8 +79,7 @@
     }
 
     var methods = {
-
-        // Attach observers.
+        // Used to add observers to an element.
         attach: function (options) {
             var type = options.type,
                 callback = options.callback,
@@ -86,6 +93,10 @@
                     ignore: false
                 },
                 modify: {
+                    callbacks: [],
+                    ignore: false
+                },
+                text: {
                     callbacks: [],
                     ignore: false
                 }
@@ -127,6 +138,10 @@
                         return mutations;
                     };
                 }
+                // Store the old text node value(s) so we can track changes.
+                if (type === Text) {
+
+                }
             }
 
             if (oc.observer === undefined) {
@@ -156,6 +171,10 @@
                         }
                     },
 
+                    checkText = function (index, mutation) {
+                        var mutType = mutation.type;
+                    },
+
                     // Define our callback for when a mutation is detected.
                     mutcallback = function (mutations) {
                         // Ignore any DOM changes that this callback makes to prevent infinite loops.
@@ -164,6 +183,8 @@
                         } else {
                             return;
                         }
+
+                        console.log('callback');
 
                         // Find elements that have not already been processed by this observer.
                         var selected = type === CREATE ? $(conditions, $this) : $this;
@@ -228,17 +249,61 @@
                         init.attributeFilter = conditions[0].split(' ');
                     }
                     break;
+                case TEXT:
+                    // For text changes we will listen for both text node changes and insertions.
+                    init = {
+                        characterData: true,
+                        childList: true
+                    };
+                    break;
                 }
                 observer.observe($this[0], init);
             }
             return this;
         },
-
-        // Detach observers.
         detach: function (options) {
-            var type = options.type,
-                oc = this.data('onMutate')[type];
-            oc.observer.disconnect();
+            var current, oc = this.data('onMutate')[type],
+                i,
+                type = options.type,
+                callback = options.callback,
+                selector = options.selector,
+                watchedattrs = options.attrs ? options.attrs.split(' ') : undefined;
+            if ((type === CREATE && typeof (selector) === 'undefined') || (type === MODIFY && typeof (callback) === 'undefined')) {
+                // Detach everything.
+                if (type === CREATE) {
+                    for (i in oc) {
+                        current = oc[i];
+                        if (current.observer) current.observer.disconnect();
+                        delete oc[i];
+                    }
+                } else if (oc.observer) oc.observer.disconnect();
+                // Remove all the onCreate data but leave the original object intact so any future attachments will go faster.
+            } else {
+                if (type === MODIFY || typeof (selector) === 'string' && oc[selector]) {
+                    current = (type === MODIFY ? oc : oc[selector]);
+                    if (typeof (callback) === 'undefined') {
+                        current.observer.disconnect();
+                        delete oc[selector];
+                    } else if (typeof (callback) === 'function') {
+                        var callbacks = current.callbacks;
+                        for (i = callbacks.length - 1; i >= 0; i--) {
+                            if (callbacks[i].callback === callback) {
+                                callbacks.splice(i, 1);
+                                break;
+                            }
+                        }
+                        if (callbacks.length === 0) {
+                            if (current.observer) {
+                                current.observer.disconnect();
+                            } else {
+                                return true;
+                            }
+                        }
+                    } else {
+                        debug('OnCreate: Invalid callback.');
+                    }
+                }
+            }
             return this;
         }
     };
@@ -276,6 +341,7 @@
                     multi: args[2]
                 });
             } else {
+                console.log(args[0] + " is not a valid onCreate method or no callback was given.");
                 return this;
             }
         },
@@ -319,10 +385,49 @@
                     });
                 }
             } else if (method === 'attach') {
+                console.log(args[0] + " is not a valid onCreate method or no callback was given.");
                 return this;
             } else {
                 methods[method].call(this, {
                     type: MODIFY
+                });
+            }
+        },
+
+        // onText. Usage: onText([match,] callback, multi);
+        onText: function () {
+            if (this.length === 0) {
+                debug("OnModify: Empty object received.");
+                return this;
+            }
+
+            var args = Array.prototype.slice.call(arguments),
+                method;
+            if (methods[args[0]]) {
+                method = args.shift();
+            } else {
+                method = 'attach';
+            }
+
+            if (typeof (args[0]) === 'function') {
+                return methods[method].call(this, {
+                    type: TEXT,
+                    callback: args[0],
+                    multi: args[1]
+                });
+            } else if (typeof (args[0]) === 'string' || args[0] instanceof RegExp && typeof (args[1]) === 'function') {
+                return methods[method].call(this, {
+                    type: TEXT,
+                    conditions: args[0],
+                    callback: args[1],
+                    multi: args[2]
+                });
+            } else if (method === 'attach') {
+                console.log(args[0] + " is not a valid onCreate method or no callback was given.");
+                return this;
+            } else {
+                methods[method].call(this, {
+                    type: TEXT
                 });
             }
         }
