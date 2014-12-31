@@ -103,7 +103,7 @@
                 }
                 $('#repeat').onCreate('.bluebox', repeat, true);
                 $('#repeat .detach').click(function () {
-                    $('#repeat').onCreate('detach', '.bluebox', repeat);
+                    $('#repeat').onCreate('detach', repeat); // Detach by callback method.
                 });
 
                 $('#alreadythere-repeat').onCreate('.bluebox', function (elements) {
