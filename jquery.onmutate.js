@@ -70,6 +70,26 @@
         return map;
     }
 
+    // Returns a set of MutationRecord-like objects by comparing two attribute maps.
+    function mapCompare(map1, map2) {
+        var mutations = [];
+        $.each(map1, function (key, value) {
+            if (typeof (map2[key]) === 'undefined' || value !== map2[key]) {
+                mutations.push({
+                    attributeName: key
+                });
+            }
+        });
+        $.each(map2, function (key, value) {
+            if (typeof (map1[key]) === 'undefined') {
+                mutations.push({
+                    attributeName: key
+                });
+            }
+        });
+        return mutations;
+    }
+
     var methods = {
 
         // Attach observers.
@@ -77,8 +97,7 @@
             var type = options.type,
                 callback = options.callback,
                 multi = options.multi || false,
-                conditions = options.conditions,
-                mapCompare;
+                conditions = options.conditions;
             // Get/initiate the element's onMutate data.
             this.data('onMutate') || this.data('onMutate', {
                 create: {
@@ -86,6 +105,10 @@
                     ignore: false
                 },
                 modify: {
+                    callbacks: [],
+                    ignore: false
+                },
+                text: {
                     callbacks: [],
                     ignore: false
                 }
@@ -107,32 +130,18 @@
                 // Create an attribute map for non-MutationObserver browsers so we can track changes.
                 if (type === MODIFY) {
                     oc.attributeMap = attributeMap(this[0]);
+                }
 
-                    mapCompare = function (map1, map2) {
-                        var mutations = [];
-                        $.each(map1, function (key, value) {
-                            if (typeof (map2[key]) === 'undefined' || value !== map2[key]) {
-                                mutations.push({
-                                    attributeName: key
-                                });
-                            }
-                        });
-                        $.each(map2, function (key, value) {
-                            if (typeof (map1[key]) === 'undefined') {
-                                mutations.push({
-                                    attributeName: key
-                                });
-                            }
-                        });
-                        return mutations;
-                    };
+                // Store the old text node value(s) so we can track changes.
+                if (type === TEXT) {
+                    oc.text = this.text();
                 }
             }
 
             if (oc.observer === undefined) {
                 // Store `this` to a variable to use as a context
                 var $this = this,
-                    observer, i, attrmatch, textmatch,
+                    observer, i, changematch,
                     // This method filters out elements that have already been processed by the current callback.
                     filter = function (index, element) {
                         return !$(element).attr('data-oc-processed-' + callbacks[i].cbid);
@@ -146,11 +155,11 @@
                         if (!attrs || attrs.indexOf(attrname) > -1) {
                             if (typeof (match) !== 'undefined') {
                                 if (attrval.search(match) >= 0) {
-                                    attrmatch = true;
+                                    changematch = true;
                                     return false;
                                 }
                             } else {
-                                attrmatch = true;
+                                changematch = true;
                                 return false;
                             }
                         }
@@ -169,20 +178,36 @@
                         var selected = type === CREATE ? $(conditions, $this) : $this;
 
                         if (selected.length > 0) {
+                            var newmap, newtext;
+                            if (type === MODIFY) newmap = attributeMap($this[0]);
+                            if (type === TEXT) newtext = $this.text();
+
                             for (i = callbacks.length - 1; i >= 0; i--) {
                                 var elements = selected.filter(filter);
 
                                 // Validate changed attributes for modify observers.
                                 if (type === MODIFY) {
-                                    attrmatch = false;
+                                    changematch = false;
                                     if (!MutationObserver) {
-                                        var newmap = attributeMap($this[0]);
                                         mutations = mapCompare(newmap, oc.attributeMap);
                                     }
                                     $.each(mutations, checkattrs);
                                 }
 
-                                if (elements.length > 0 && (type === CREATE || attrmatch)) {
+                                // Compare the text contents of the element to its original text.
+                                if (type === TEXT) {
+                                    changematch = false;
+                                    var cond = callbacks[i].conditions;
+                                    if (newtext !== oc.text) {
+                                        if (cond) {
+
+                                        } else {
+                                            changematch = true;
+                                        }
+                                    }
+                                }
+
+                                if (elements.length > 0 && (type === CREATE || changematch)) {
                                     if (type === CREATE) elements.attr('data-oc-processed-' + callbacks[i].cbid, true);
                                     callbacks[i].callback.call($this, elements);
                                     // Remove callback from the list if it only runs once.
@@ -191,6 +216,8 @@
                                     }
                                 }
                             }
+                            if (type === MODIFY) oc.attributeMap = newmap;
+                            if (type === TEXT) oc.text = newtext;
                         }
 
                         // We've safely iterated through the callbacks, so don't ignore this master callback anymore.
@@ -228,6 +255,13 @@
                         init.attributeFilter = conditions[0].split(' ');
                     }
                     break;
+                case TEXT:
+                    init = {
+                        childList: true,
+                        characterData: true,
+                        subtree: true
+                    };
+                    break;
                 }
                 observer.observe($this[0], init);
             }
@@ -247,15 +281,10 @@
         // $(parent).onCreate(selector, callback[, multi]);
         onCreate: function () {
 
-            if (this.length === 0) {
-                debug("OnCreate: No valid parent elements.");
-                return this;
-            }
-
             var args = Array.prototype.slice.call(arguments);
 
+            // Invalid argument
             if (typeof (args[0]) !== 'string') {
-                debug("OnCreate: Invalid argument. You must pass a string representing either an onCreate method or a jQuery selector.");
                 return this;
             }
 
@@ -282,11 +311,6 @@
 
         // onModify. Usage: .onModify([attributes[, match,]] callback, multi)
         onModify: function () {
-
-            if (this.length === 0) {
-                debug("OnModify: Empty object received.");
-                return this;
-            }
 
             var args = Array.prototype.slice.call(arguments),
                 method;
@@ -323,6 +347,45 @@
             } else {
                 methods[method].call(this, {
                     type: MODIFY
+                });
+            }
+        },
+
+        // onText. Usage: onText([match,] callback, multi);
+        onText: function () {
+            if (this.length === 0) {
+                debug("OnModify: Empty object received.");
+                return this;
+            }
+
+            var args = Array.prototype.slice.call(arguments),
+                method;
+
+            if (methods[args[0]]) {
+                method = args.shift();
+            } else {
+                method = 'attach';
+            }
+
+            if (typeof (args[0]) === 'function') {
+                return methods[method].call(this, {
+                    type: TEXT,
+                    callback: args[0],
+                    multi: args[1]
+                });
+            } else if (typeof (args[0]) === 'string' || args[0] instanceof RegExp && typeof (args[1]) === 'function') {
+                return methods[method].call(this, {
+                    type: TEXT,
+                    conditions: args[0],
+                    callback: args[1],
+                    multi: args[2]
+                });
+            } else if (method === 'attach') {
+                console.log(args[0] + " is not a valid onCreate method or no callback was given.");
+                return this;
+            } else {
+                methods[method].call(this, {
+                    type: TEXT
                 });
             }
         }
