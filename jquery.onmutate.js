@@ -15,17 +15,6 @@
     // Uncomment this to easily test the setInterval fallback.
     // MutationObserver = null;
 
-    // MutationObserver = false; // Test C/B fallbacks.
-    // Check for the existence of jQuery.
-    if (!$.fn.jquery) {
-        window.console = window.console || {
-            log: function () {},
-            warn: function () {}
-        };
-        window.console.warn('jQuery is undefined. onCreate can not initialize.');
-        return;
-    }
-
     // Constants for mutation types.
     var CREATE = 'create',
         MODIFY = 'modify',
@@ -90,14 +79,15 @@
         return mutations;
     }
 
+    // Possible methods to invoke with $().on[Create|Modify|Text]()
     var methods = {
-
         // Attach observers.
         attach: function (options) {
             var type = options.type,
                 callback = options.callback,
                 multi = options.multi || false,
                 conditions = options.conditions;
+
             // Get/initiate the element's onMutate data.
             this.data('onMutate') || this.data('onMutate', {
                 create: {
@@ -113,10 +103,8 @@
                     ignore: false
                 }
             });
-            var oc = this.data('onMutate')[type];
-
-            var callbacks = oc.callbacks,
-
+            var om = this.data('onMutate')[type],
+                callbacks = om.callbacks,
                 // Add the callback to the array of callbacks for the current type.
                 newcb = {
                     callback: callback,
@@ -126,153 +114,146 @@
                 };
             callbacks.unshift(newcb);
 
-            if (!MutationObserver) {
-                // Create an attribute map for non-MutationObserver browsers so we can track changes.
-                if (type === MODIFY) {
-                    oc.attributeMap = attributeMap(this[0]);
-                }
-
-                // Store the old text node value(s) so we can track changes.
-                if (type === TEXT) {
-                    oc.text = this.text();
-                }
+            // Store the element's current text or attributes if needed.
+            if (!MutationObserver && type === MODIFY) {
+                om.attributeMap = attributeMap(this[0]);
             }
+            if (type === TEXT) om.text = this.text();
 
-            if (oc.observer === undefined) {
-                // Store `this` to a variable to use as a context
-                var $this = this,
-                    observer, i, changematch,
-                    // This method filters out elements that have already been processed by the current callback.
-                    filter = function (index, element) {
-                        return !$(element).attr('data-oc-processed-' + callbacks[i].cbid);
-                    },
-                    // Iterate through the changed attributes and see if there is a match to the modify listener's conditions.
-                    checkattrs = function (index, mutation) {
-                        var attrname = mutation.attributeName,
-                            attrval = $this.attr(attrname),
-                            attrs = callbacks[i].conditions ? callbacks[i].conditions[0] : undefined,
-                            match = callbacks[i].conditions && callbacks[i].conditions[1] ? callbacks[i].conditions[1] : undefined;
-                        if (!attrs || attrs.indexOf(attrname) > -1) {
-                            if (typeof (match) !== 'undefined') {
-                                if (attrval.search(match) >= 0) {
-                                    changematch = true;
-                                    return false;
-                                }
-                            } else {
+            var $this = this,
+                i, changematch,
+                // This method filters out elements that have already been processed by the current callback.
+                filter = function (index, element) {
+                    return !$(element).data('om-processed-' + callbacks[i].cbid);
+                },
+                // Iterate through the changed attributes and see if there is a match to the modify listener's conditions.
+                checkattrs = function (index, mutation) {
+                    var attrname = mutation.attributeName,
+                        attrval = $this.attr(attrname),
+                        attrs = callbacks[i].conditions ? callbacks[i].conditions[0] : undefined,
+                        match = callbacks[i].conditions && callbacks[i].conditions[1] ? callbacks[i].conditions[1] : undefined;
+                    if (!attrs || attrs.indexOf(attrname) > -1) {
+                        if (typeof (match) !== 'undefined') {
+                            if (attrval.search(match) >= 0) {
                                 changematch = true;
                                 return false;
                             }
-                        }
-                    },
-
-                    // Define our callback for when a mutation is detected.
-                    mutcallback = function (mutations) {
-                        // Ignore any DOM changes that this callback makes to prevent infinite loops.
-                        if (!oc.ignore) {
-                            oc.ignore = true;
                         } else {
-                            return;
+                            changematch = true;
+                            return false;
                         }
-
-                        // Find elements that have not already been processed by this observer.
-                        var selected = type === CREATE ? $(conditions, $this) : $this;
-
-                        if (selected.length > 0) {
-                            var newmap, newtext;
-                            if (type === MODIFY) newmap = attributeMap($this[0]);
-                            if (type === TEXT) newtext = $this.text();
-
-                            for (i = callbacks.length - 1; i >= 0; i--) {
-                                var elements = selected.filter(filter);
-
-                                // Validate changed attributes for modify observers.
-                                if (type === MODIFY) {
-                                    changematch = false;
-                                    if (!MutationObserver) {
-                                        mutations = mapCompare(newmap, oc.attributeMap);
-                                    }
-                                    $.each(mutations, checkattrs);
-                                }
-
-                                // Compare the text contents of the element to its original text.
-                                if (type === TEXT) {
-                                    changematch = false;
-                                    var cond = callbacks[i].conditions;
-                                    if (newtext !== oc.text) {
-                                        if (cond) {
-
-                                        } else {
-                                            changematch = true;
-                                        }
-                                    }
-                                }
-
-                                if (elements.length > 0 && (type === CREATE || changematch)) {
-                                    if (type === CREATE) elements.attr('data-oc-processed-' + callbacks[i].cbid, true);
-                                    callbacks[i].callback.call($this, elements);
-                                    // Remove callback from the list if it only runs once.
-                                    if (!callbacks[i].multi) {
-                                        callbacks.splice(i, 1);
-                                    }
-                                }
-                            }
-                            if (type === MODIFY) oc.attributeMap = newmap;
-                            if (type === TEXT) oc.text = newtext;
-                        }
-
-                        // We've safely iterated through the callbacks, so don't ignore this master callback anymore.
-                        // Additional mutation events apparently fire after this entire function, so we set ignore to false with an extremely small delay.
-                        if (oc.ignore) setTimeout(function () {
-                            oc.ignore = false;
-                        }, 1);
-                        if (callbacks.length === 0) {
-                            if (observer) {
-                                observer.disconnect();
-                            } else {
-                                return true;
-                            }
-                        }
-                    };
-                // Sanity Check: If this is a create listener, run the callback on initialization to see if there is already a valid element.
-                if (type === CREATE && mutcallback()) {
-                    return this;
-                }
-
-                observer = oc.observer = new Observer(mutcallback, type);
-                var init;
-                switch (type) {
-                case CREATE:
-                    init = {
-                        childList: true,
-                        subtree: true
-                    };
-                    break;
-                case MODIFY:
-                    init = {
-                        attributes: true
-                    };
-                    if (conditions) {
-                        init.attributeFilter = conditions[0].split(' ');
                     }
-                    break;
-                case TEXT:
-                    init = {
-                        childList: true,
-                        characterData: true,
-                        subtree: true
-                    };
-                    break;
-                }
-                observer.observe($this[0], init);
+                },
+
+                // Define our callback for when a mutation is detected.
+                mutcallback = om.mutcallback = om.mutcallback || function (mutations) {
+                    callbacks = om.callbacks; // Refresh the callback list.
+                    // Ignore any DOM changes that this callback makes to prevent infinite loops.
+                    if (!om.ignore) {
+                        om.ignore = true;
+                    } else {
+                        return;
+                    }
+                    // Find elements that have not already been processed by this observer.
+                    var selected = type === CREATE ? $(conditions, $this) : $this;
+
+                    if (selected.length > 0) {
+                        var newmap, newtext;
+                        if (type === MODIFY) newmap = attributeMap($this[0]);
+                        if (type === TEXT) newtext = $this.text();
+
+                        for (i = callbacks.length - 1; i >= 0; i--) {
+                            var elements = selected.filter(filter);
+
+                            // Validate changed attributes for modify observers.
+                            if (type === MODIFY) {
+                                changematch = false;
+                                if (!MutationObserver) {
+                                    mutations = mapCompare(newmap, om.attributeMap);
+                                }
+                                $.each(mutations, checkattrs);
+                            }
+
+                            // Compare the text contents of the element to its original text.
+                            if (type === TEXT) {
+                                changematch = false;
+                                var cond = callbacks[i].conditions;
+                                if (newtext !== om.text) {
+                                    if (cond) {
+                                        changematch = newtext.search(cond) > -1;
+                                    } else {
+                                        changematch = true;
+                                    }
+                                }
+                            }
+
+                            if (elements.length > 0 && (type === CREATE || changematch)) {
+                                if (type === CREATE) elements.data('om-processed-' + callbacks[i].cbid, true);
+                                callbacks[i].callback.call($this, elements);
+                                // Remove callback from the list if it only runs once.
+                                if (!callbacks[i].multi) {
+                                    callbacks.splice(i, 1);
+                                }
+                            }
+                        }
+                        if (type === MODIFY) om.attributeMap = newmap;
+                        if (type === TEXT) om.text = newtext;
+                    }
+
+                    // We've safely iterated through the callbacks, so don't ignore this master callback anymore.
+                    // Additional mutation events apparently fire after this entire function, so we set ignore to false with an extremely small delay.
+                    if (om.ignore) setTimeout(function () {
+                        om.ignore = false;
+                    }, 1);
+                    if (callbacks.length === 0) {
+                        if (observer) {
+                            observer.disconnect();
+                        } else {
+                            return true;
+                        }
+                    }
+                };
+            // Sanity Check: If this is a create listener, run the callback on initialization to see if there is already a valid element.
+            if (type === CREATE && mutcallback()) {
+                return this;
             }
+
+            var observer = om.observer = om.observer || new Observer(mutcallback),
+                init;
+            switch (type) {
+            case CREATE:
+                init = {
+                    childList: true,
+                    subtree: true
+                };
+                break;
+            case MODIFY:
+                init = {
+                    attributes: true
+                };
+                if (conditions) {
+                    init.attributeFilter = conditions[0].split(' ');
+                }
+                break;
+            case TEXT:
+                init = {
+                    childList: true,
+                    characterData: true,
+                    subtree: true
+                };
+                break;
+            }
+            observer.observe($this[0], init);
             return this;
         },
 
         // Detach observers.
         detach: function (options) {
             var type = options.type,
-                oc = this.data('onMutate')[type];
-            oc.observer.disconnect();
+                om = this.data('onMutate')[type];
+            if (om.observer)
+                om.observer.disconnect();
+            om.callbacks = [];
             return this;
         }
     };
