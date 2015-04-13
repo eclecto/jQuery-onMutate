@@ -1,402 +1,431 @@
 <html>
 
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <title>onMutate Demo</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>onMutate Demo</title>
 
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
-    <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
 
-    <style type="text/css">
-        body {
-            font-family: sans-serif;
-        }
-        #page {
-            max-width: 800px;
-            margin: auto;
-        }
-        .box {
-            padding: .5em;
-            font-family: Arial, sansserif;
-            text-align: center;
-            color: #ffffff;
-            background-color: #000000;
-            width: 23.5%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid #000000;
-            margin-top: 2%;
-            margin-right: 2%;
-            cursor: default;
-        }
-        .half .box {
-            width: 100%;
-            margin-right: 0;
-        }
-        .boxes .box:nth-child(4n) {
-            margin-right: 0;
-        }
-        .bluebox {
-            background-color: #0000ff;
-        }
-        .greenbox {
-            background-color: #00ff00;
-            color: #000000;
-        }
-        .redbox {
-            background-color: #ff0000;
-        }
-        .container {
-            box-sizing: border-box;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #cccccc;
-        }
-        .container:after {
-            content: ".";
-            clear: both;
-            height: 0;
-            font-size: 1;
-        }
-        p,
-        h2 {
-            margin-top: 0;
-            max-width: 49%;
-        }
-        .half p,
-        .half h2 {
-            max-width: none;
-        }
-        .boxes {
-            margin-top: 1em;
-            clear: both;
-        }
-        .boxes:after {
-            content: '.';
-            clear: both;
-            display: block;
-            visibility: hidden;
-            height: 0;
-            font-size: 0;
-        }
-        fieldset {
-            font-size: 12px;
-            border: 0;
-            color: #333;
-            float: left;
-        }
-        label,
-        input[type=button] {
-            display: block;
-            margin-bottom: .5em;
-        }
-        .count {
-            float: right;
-            padding: .25em .5em;
-            border: 1px solid #dddddd;
-        }
-        .half {
-            width: 49%;
-            float: left;
-        }
-        .half + .half {
-            margin-left: 2%;
-        }
-        #resizable {
-            box-sizing: content-box;
-            width: 250px;
-            height: 50px;
-        }
-        #ontext .box {
-            width: 100%;
-        }
-    </style>
+  <style type="text/css">
+    body {
+      font-family: sans-serif;
+    }
+    
+    #page {
+      max-width: 800px;
+      margin: auto;
+    }
+    
+    .box {
+      padding: .5em;
+      font-family: Arial, sansserif;
+      text-align: center;
+      color: #ffffff;
+      background-color: #000000;
+      width: 23.5%;
+      float: left;
+      box-sizing: border-box;
+      border: 1px solid #000000;
+      margin-top: 2%;
+      margin-right: 2%;
+      cursor: default;
+    }
+    
+    .half .box {
+      width: 100%;
+      margin-right: 0;
+    }
+    
+    .boxes .box:nth-child(4n) {
+      margin-right: 0;
+    }
+    
+    .bluebox {
+      background-color: #0000ff;
+    }
+    
+    .greenbox {
+      background-color: #00ff00;
+      color: #000000;
+    }
+    
+    .redbox {
+      background-color: #ff0000;
+    }
+    
+    .container {
+      box-sizing: border-box;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid #cccccc;
+    }
+    
+    .container:after {
+      content: ".";
+      clear: both;
+      height: 0;
+      font-size: 1;
+    }
+    
+    p,
+    h2 {
+      margin-top: 0;
+      max-width: 49%;
+    }
+    
+    .half p,
+    .half h2 {
+      max-width: none;
+    }
+    
+    .boxes {
+      margin-top: 1em;
+      clear: both;
+    }
+    
+    .boxes:after {
+      content: '.';
+      clear: both;
+      display: block;
+      visibility: hidden;
+      height: 0;
+      font-size: 0;
+    }
+    
+    fieldset {
+      font-size: 12px;
+      border: 0;
+      color: #333;
+      float: left;
+    }
+    
+    label,
+    input[type=button] {
+      display: block;
+      margin-bottom: .5em;
+    }
+    
+    .count {
+      float: right;
+      padding: .25em .5em;
+      border: 1px solid #dddddd;
+    }
+    
+    .half {
+      width: 49%;
+      float: left;
+    }
+    
+    .half + .half {
+      margin-left: 2%;
+    }
+    
+    #resizable {
+      box-sizing: content-box;
+      width: 250px;
+      height: 50px;
+    }
+    
+    #ontext .box {
+      width: 100%;
+    }
+  </style>
 
-    <script type="text/javascript" src="../jquery.onmutate.js"></script>
+  <script type="text/javascript" src="../jquery.onmutate.js"></script>
 
-    <script type="text/javascript">
-        (function ($) {
-            $(function () {
-                var ocboxes = $('#oncreate .boxes'),
-                    ombox = $('#onmodify .box:eq(0)'),
-                    otbox = $('#ontext .box');
+  <script type="text/javascript">
+    (function ($) {
+      $(function () {
+        var ocboxes = $('#oncreate .boxes'),
+          ombox = $('#onmodify .box:eq(0)'),
+          otbox = $('#ontext .box');
 
-                /*
-                 *  onCreate listeners
-                 */
-                ocboxes.onCreate('.bluebox', function (elements) {
-                    elements.removeClass('bluebox').addClass('greenbox').text('This is a green box.');
-                });
-                $('#oncreate label').click(function () {
-                    console.log($('input', this).val());
-                    ocboxes.onCreate('detach');
-                    switch ($('input', this).val()) {
-                    case "1":
-                        console.log('Example: Single change activated.');
-                        ocboxes.onCreate('.bluebox', function (elements) {
-                            elements.removeClass('bluebox').addClass('greenbox').text('This is a green box.');
-                        });
-                        break;
-                    case "2":
-                        console.log('Example: Multi change activated.');
-                        ocboxes.onCreate('.bluebox', function (elements) {
-                            console.log(elements);
-                            elements.removeClass('bluebox').addClass('greenbox').text('This is a green box.');
-                        }, true);
-                        break;
-                    case "3":
-                        console.log('Example: Count activated.');
-                        ocboxes.onCreate('.box', function (elements) {
-                            console.log(elements);
-                            $('#oncreate .count').text($('#oncreate .box').length + ' boxes');
-                        }, true);
-                        break;
-                    case "4":
-                        console.log('Example: All callbacks deactivated.');
-                        break;
-                    }
-                });
+        /*
+         *  onCreate listeners
+         */
+        function ocOnce(elements) {
+          elements.removeClass('bluebox greenbox').addClass('redbox').text('This is a red box.');
+        }
+        function ocAlways(elements) {
+          elements.removeClass('bluebox redbox').addClass('greenbox').text('This is a green box.');
+        }
+        function ocCount(elements) {
+          $('#oncreate .count').text($('#oncreate .box').length + ' boxes');
+        }
+        
+        ocboxes.onCreate('.bluebox', ocOnce);
 
-                /*
-                 *  onCreate behavior
-                 */
-                $('#oncreate input.create').click(function () {
-                    $('#oncreate .boxes').append('<div class="box bluebox">This is a blue box</div>');
-                });
-                $('#oncreate input.remove').click(function () {
-                    $('#oncreate .boxes').empty();
-                });
+        $('#oc-once').change(function () {
+          if (this.checked) {
+            ocboxes.onCreate('.bluebox', ocOnce);
+          } else {
+            ocboxes.onCreate('detach', ocOnce);
+          }
+        });
 
-                /*
-                 *  onModify listeners
-                 */
-                ombox.onModify('class', function (elements) {
-                    elements.removeClass('greenbox').addClass('bluebox').text('This is still a blue box.');
-                });
-                var rep;
+        $('#oc-always').change(function () {
+          if (this.checked) {
+            ocboxes.onCreate('.bluebox', ocAlways, true);
+          } else {
+            ocboxes.onCreate('detach', ocAlways);
+          }
+        });
 
-                function randiff(input) {
-                    var newval = Math.floor(Math.random() * 5);
-                    return (newval === input ? randiff(input) : newval);
-                }
+        $('#oc-count').change(function () {
+          if (this.checked) {
+            ocboxes.onCreate('.bluebox', ocCount, true);
+          } else {
+            ocboxes.onCreate('detach', ocCount);
+          }
+        });
 
-                function repeat(elements) {
-                    var text;
-                    rep = randiff(rep);
-                    switch (rep) {
-                    case 0:
-                        text = 'This is still a blue box';
-                        break;
-                    case 1:
-                        text = 'Sorry, still blue';
-                        break;
-                    case 2:
-                        text = 'Nice try, but blue it remains';
-                        break;
-                    case 3:
-                        text = 'This box is green, pause, NOT';
-                        break;
-                    case 4:
-                        text = 'Thanks, but we\'re sticking with blue';
-                        break;
-                    }
-                    elements.removeClass('greenbox').addClass('bluebox').text(text);
-                }
-                
-                $('#onmodify label').click(function () {
-                    ombox.onModify('detach');
-                    switch ($('input', this).val()) {
-                    case "1":
-                        console.log('Example: Single change activated.');
-                        ombox.onModify('class', function (elements) {
-                            elements.removeClass('greenbox').addClass('bluebox').text('This is still a blue box.');
-                        });
-                        break;
-                    case "2":
-                        console.log('Example: Multi change activated.');
-                        ombox.onModify('class', repeat, true);
-                        break;
-                    case "3":
-                        console.log('Example: All callbacks deactivated.');
-                        break;
-                    }
-                });
+        $('#oc-disable').click(function () {
+          ocboxes.onCreate('detach');
+          $('#oncreate').find('input[type=checkbox]').removeAttr('checked');
+        });
 
-                var minwidth = 188,
-                    minheight = 19,
-                    minmatch = new RegExp("(?=.*width: " + minwidth + "px;)(?=.*height: " + minheight + "px)");
 
-                /*
-                 *  onCreate resizable box
-                 */
-                $('#resizable').resizable({
-                    minWidth: minwidth,
-                    minHeight: minheight,
-                    maxWidth: 357,
-                    maxHeight: 291
-                }).onModify('style', /(?=.*width: 357px;)(?=.*height: 291px)/, function (elements) {
-                    console.log('big');
-                    elements.removeClass('bluebox greenbox').addClass('redbox');
-                }, true)
-                    .onModify('style', minmatch, function (elements) {
-                        console.log('small');
-                        elements.removeClass('bluebox redbox').addClass('greenbox');
-                    }, true)
-                    .onModify('style', function (elements) {
-                        var pixels = (elements.outerWidth() * elements.outerHeight()).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                        elements.contents()[0].textContent = 'This box has ' + pixels + ' pixels.';
-                    }, true);
+        /*
+         *  onCreate behavior
+         */
+        $('#oncreate input.create').click(function () {
+          $('#oncreate .boxes').append('<div class="box bluebox">This is a blue box</div>');
+        });
+        $('#oncreate input.remove').click(function () {
+          $('#oncreate .boxes').empty();
+        });
 
-                /*
-                 *  onModify behavior
-                 */
-                $('#onmodify .boxes').on('click', '.bluebox', function () {
-                    $(this).removeClass('bluebox').addClass('greenbox').text('This is a green box.');
-                });
-                $('#onmodify input.modify-reset').click(function () {
-                    $('#onmodify .boxes .box').removeClass('greenbox').addClass('bluebox').text('This is a blue box.');
-                });
+        /*
+         *  onModify listeners
+         */
+        ombox.onModify('class', function (elements) {
+          elements.removeClass('greenbox').addClass('bluebox').text('This is still a blue box.');
+        });
+        var rep;
 
-                /*
-                 *  onText listeners
-                 */
-                var otbox = $('#ontext .box'), rep2 = 0;
-                otbox.onText(function (element) {
-                    element.text('No, this is actually a blue box');
-                });
-                
-                function repeattext(elements) {
-                    var text;
-                    rep2 = randiff(rep2);
-                    switch (rep2) {
-                    case 0:
-                        text = 'No, this is actually a blue box';
-                        break;
-                    case 1:
-                        text = 'Definitely blue';
-                        break;
-                    case 2:
-                        text = 'This box is not green';
-                        break;
-                    case 3:
-                        text = 'Yeah, not green. Blue.';
-                        break;
-                    case 4:
-                        text = 'It\'s blue, not green, this box that is';
-                        break;
-                    }
-                    elements.text(text);
-                }
+        function randiff(input) {
+          var newval = Math.floor(Math.random() * 5);
+          return (newval === input ? randiff(input) : newval);
+        }
 
-                $('#ontext label').click(function () {
-                    otbox.onText('detach');
-                    switch ($('input', this).val()) {
-                    case "1":
-                        console.log('Example: Single change activated.');
-                        otbox.onText(function (element) {
-                            element.text('No, this is actually a blue box.');
-                        });
-                        break;
-                    case "2":
-                        console.log('Example: Multi change activated.');
-                        otbox.onText('This is a green box', repeattext, true);
-                        break;
-                    case "3":
-                        console.log('Example: All callbacks deactivated.');
-                        break;
-                    }
-                });
+        function repeat(elements) {
+          var text;
+          rep = randiff(rep);
+          switch (rep) {
+          case 0:
+            text = 'This is still a blue box';
+            break;
+          case 1:
+            text = 'Sorry, still blue';
+            break;
+          case 2:
+            text = 'Nice try, but blue it remains';
+            break;
+          case 3:
+            text = 'This box is green, pause, NOT';
+            break;
+          case 4:
+            text = 'Thanks, but we\'re sticking with blue';
+            break;
+          }
+          elements.removeClass('greenbox').addClass('bluebox').text(text);
+        }
 
-                /*
-                 *  onText behavior
-                 */
-                $('#ontext').on('click', '.bluebox', function () {
-                    $(this).text('This is a green box');
-                });
-                $('.text-reset').click(function () {
-                    otbox.text('This is a blue box');
-                });
+        $('#onmodify label').click(function () {
+          ombox.onModify('detach');
+          switch ($('input', this).val()) {
+          case "1":
+            console.log('Example: Single change activated.');
+            ombox.onModify('class', function (elements) {
+              elements.removeClass('greenbox').addClass('bluebox').text('This is still a blue box.');
             });
-        })(jQuery);
-    </script>
+            break;
+          case "2":
+            console.log('Example: Multi change activated.');
+            ombox.onModify('class', repeat, true);
+            break;
+          case "3":
+            console.log('Example: All callbacks deactivated.');
+            break;
+          }
+        });
+
+        var minwidth = 188,
+          minheight = 19,
+          minmatch = new RegExp("(?=.*width: " + minwidth + "px;)(?=.*height: " + minheight + "px)");
+
+        /*
+         *  onCreate resizable box
+         */
+        $('#resizable').resizable({
+            minWidth: minwidth,
+            minHeight: minheight,
+            maxWidth: 357,
+            maxHeight: 291
+          }).onModify('style', /(?=.*width: 357px;)(?=.*height: 291px)/, function (elements) {
+            console.log('big');
+            elements.removeClass('bluebox greenbox').addClass('redbox');
+          }, true)
+          .onModify('style', minmatch, function (elements) {
+            console.log('small');
+            elements.removeClass('bluebox redbox').addClass('greenbox');
+          }, true)
+          .onModify('style', function (elements) {
+            var pixels = (elements.outerWidth() * elements.outerHeight()).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            elements.contents()[0].textContent = 'This box has ' + pixels + ' pixels.';
+          }, true);
+
+        /*
+         *  onModify behavior
+         */
+        $('#onmodify .boxes').on('click', '.bluebox', function () {
+          $(this).removeClass('bluebox').addClass('greenbox').text('This is a green box.');
+        });
+        $('#onmodify input.modify-reset').click(function () {
+          $('#onmodify .boxes .box').removeClass('greenbox').addClass('bluebox').text('This is a blue box.');
+        });
+
+        /*
+         *  onText listeners
+         */
+        var otbox = $('#ontext .box'),
+          rep2 = 0;
+        otbox.onText(function (element) {
+          element.text('No, this is actually a blue box');
+        });
+
+        function repeattext(elements) {
+          var text;
+          rep2 = randiff(rep2);
+          switch (rep2) {
+          case 0:
+            text = 'No, this is actually a blue box';
+            break;
+          case 1:
+            text = 'Definitely blue';
+            break;
+          case 2:
+            text = 'This box is not green';
+            break;
+          case 3:
+            text = 'Yeah, not green. Blue.';
+            break;
+          case 4:
+            text = 'It\'s blue, not green, this box that is';
+            break;
+          }
+          elements.text(text);
+        }
+
+        $('#ontext label').click(function () {
+          otbox.onText('detach');
+          switch ($('input', this).val()) {
+          case "1":
+            console.log('Example: Single change activated.');
+            otbox.onText(function (element) {
+              element.text('No, this is actually a blue box.');
+            });
+            break;
+          case "2":
+            console.log('Example: Multi change activated.');
+            otbox.onText('This is a green box', repeattext, true);
+            break;
+          case "3":
+            console.log('Example: All callbacks deactivated.');
+            break;
+          }
+        });
+
+        /*
+         *  onText behavior
+         */
+        $('#ontext').on('click', '.bluebox', function () {
+          $(this).text('This is a green box');
+        });
+        $('.text-reset').click(function () {
+          otbox.text('This is a blue box');
+        });
+      });
+    })(jQuery);
+  </script>
 
 
 </head>
 
 <body>
-    <div id="page">
-        <h1>jQuery onMutate plugin</h1>
-        <div id="content">
-            <div id="oncreate" class="container">
-                <h2>onCreate</h2>
-                <div class="count">0 boxes</div>
-                <p>Click the button to create a blue box. onCreate listeners will act on it depending on the behavior you choose.</p>
+  <div id="page">
+    <h1>jQuery onMutate plugin</h1>
+    <div id="content">
+      <div id="oncreate" class="container">
+        <h2>onCreate</h2>
+        <div class="count">0 boxes</div>
+        <p>Click the button to create a blue box. onCreate listeners will act on it depending on the behavior you choose.</p>
 
-                <fieldset>
-                    <input type="button" class="create" value="Create a blue box" />
-                    <input type="button" class="remove" value="Remove all boxes" />
-                </fieldset>
-                <fieldset>
-                    <label>
-                        <input type="radio" name="oncreateradio" value=1 checked />Change blue boxes to green, once.</label>
-                    <label>
-                        <input type="radio" name="oncreateradio" value=2 />Change blue boxes to green, always.</label>
-                    <label>
-                        <input type="radio" name="oncreateradio" value=3 />Count the boxes.</label>
-                    <label>
-                        <input type="radio" name="oncreateradio" value=4 />Do nothing.</label>
-                </fieldset>
-                <div class="boxes">
-                </div>
-            </div>
-            <div id="onmodify" class="container">
-                <h2>onModify</h2>
-                <div id="onmodify-basic" class="half">
-                    <p>Click on the box to turn it green. onModify listeners will act on it according to the behavior you choose.</p>
-
-                    <fieldset>
-                        <input type="button" class="modify-reset" value="Reset the box" />
-                    </fieldset>
-                    <fieldset>
-                        <label>
-                            <input type="radio" name="onmodifyradio" value=1 checked />Turn the box back to blue if it turns green, once.</label>
-                        <label>
-                            <input type="radio" name="onmodifyradio" value=2 />Turn the box back to blue if it turns green, always.</label>
-                        <label>
-                            <input type="radio" name="onmodifyradio" value=3 />Do nothing.</label>
-                    </fieldset>
-                    <div class="boxes">
-                        <div class="box bluebox">This is a blue box</div>
-                    </div>
-                </div>
-                <div id="other" class="half" style="height:400px">
-                    <p>Drag to resize this box. It will turn red at its minimum size and green at its maximum size.</p>
-                    <div id="resizable" class="box bluebox">This box has 17,900 pixels.</div>
-                </div>
-            </div>
-            <div id="ontext" class="container">
-                <h2>onText</h2>
-                <div class="count">0 boxes</div>
-                <p>Click on the box to change its text, making it claim it's green. onText listeners will act on it according to the behavior you choose.</p>
-
-                <fieldset>
-                    <input type="button" class="text-reset" value="Reset the box" />
-                </fieldset>
-                <fieldset>
-                    <label>
-                        <input type="radio" name="ontextradio" value=1 checked />Prevent the box from lying, once.</label>
-                    <label>
-                        <input type="radio" name="ontextradio" value=2 />Prevent the box from lying, always.</label>
-                    <label>
-                        <input type="radio" name="ontextradio" value=3 />Do nothing.</label>
-                </fieldset>
-                <div class="boxes">
-                    <div class="box bluebox">This is a blue box</div>
-                </div>
-            </div>
+        <fieldset>
+          <input type="button" class="create" value="Create a blue box" />
+          <input type="button" class="remove" value="Remove all boxes" />
+        </fieldset>
+        <fieldset>
+          <label>
+            <input type="checkbox" id="oc-once" checked />Change blue boxes to red, once.</label>
+          <label>
+            <input type="checkbox" id="oc-always" />Change blue boxes to green, always.</label>
+          <label>
+            <input type="checkbox" id="oc-count" />Count the boxes.</label>
+          <input type="button" id="oc-disable" value="Do nothing." />
+        </fieldset>
+        <div class="boxes">
         </div>
+      </div>
+      <div id="onmodify" class="container">
+        <h2>onModify</h2>
+        <div id="onmodify-basic" class="half">
+          <p>Click on the box to turn it green. onModify listeners will act on it according to the behavior you choose.</p>
+
+          <fieldset>
+            <input type="button" class="modify-reset" value="Reset the box" />
+          </fieldset>
+          <fieldset>
+            <label>
+              <input type="checkbox" id="om-once" checked />Turn the box back to blue if it turns green, once.</label>
+            <label>
+              <input type="checkbox" id="om-always" />Turn the box back to blue if it turns green, always.</label>
+            <label>
+              <input type="checkbox" id="om-disable" />Do nothing.</label>
+          </fieldset>
+          <div class="boxes">
+            <div class="box bluebox">This is a blue box</div>
+          </div>
+        </div>
+        <div id="other" class="half" style="height:400px">
+          <p>Drag to resize this box. It will turn red at its minimum size and green at its maximum size.</p>
+          <div id="resizable" class="box bluebox">This box has 17,900 pixels.</div>
+        </div>
+      </div>
+      <div id="ontext" class="container">
+        <h2>onText</h2>
+        <div class="count">0 boxes</div>
+        <p>Click on the box to change its text, making it claim it's green. onText listeners will act on it according to the behavior you choose.</p>
+
+        <fieldset>
+          <input type="button" class="text-reset" value="Reset the box" />
+        </fieldset>
+        <fieldset>
+          <label>
+            <input type="radio" name="ontextradio" value=1 checked />Prevent the box from lying, once.</label>
+          <label>
+            <input type="radio" name="ontextradio" value=2 />Prevent the box from lying, always.</label>
+          <label>
+            <input type="radio" name="ontextradio" value=3 />Do nothing.</label>
+        </fieldset>
+        <div class="boxes">
+          <div class="box bluebox">This is a blue box</div>
+        </div>
+      </div>
     </div>
+  </div>
 </body>
 
 </html>
