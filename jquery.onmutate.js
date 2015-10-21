@@ -199,12 +199,13 @@
                   callbacks.splice(i, 1);
                 }
               }
-            }
-            if (type === MODIFY) om.attributeMap = newmap;
-            if (type === TEXT) om.text = newtext;
+            }          
+            // Update the current values, accounting for any changes the callback(s) might have made.
+            if (type === MODIFY) om.attributeMap = attributeMap($this[0]);
+            if (type === TEXT) om.text = $this.text();
           }
 
-          // We've safely iterated through the callbacks, so don't ignore this master callback anymore.
+          // We've safely iterated through the callbacks, so don't ignore this master Callback anymore.
           // Additional mutation events apparently fire after this entire function, so we set ignore to false with an extremely small delay.
           if (om.ignore) setTimeout(function () {
             om.ignore = false;
