@@ -13,7 +13,7 @@
   var cbid = 0;
 
   // Uncomment this to easily test the setInterval fallback.
-  // MutationObserver = null;
+  // MutationObserver = false;
 
   // Constants for mutation types.
   var CREATE = 'create',
@@ -44,6 +44,15 @@
         }
       }
     };
+  }
+  
+  // Callback class to wrap a callback and its properties
+  function Callback(callback, conditions, multi) {
+    this.callback = callback;
+    this.conditions = conditions;
+    this.multi = multi || false;
+    this.cbid = cbid++;
+    this.processed = $([]);
   }
 
   // Create a map of an element's attributes so we can poll for changes (non-MutationObserver browsers)
@@ -78,6 +87,25 @@
     });
     return mutations;
   }
+  
+  // Check attributes
+  function checkAttrs(mutation, $el, callback) {
+    var attrname = mutation.attributeName,
+        attrval = $el.attr(attrname),
+        conditions = callback.conditions || false,
+        attrs = conditions ? conditions[0] : false,
+        match = conditions && conditions[1] ? conditions[1] : false;
+    // If no attrs are set or the mutation affects one of the targeted attributes
+    if (!attrs || attrs.indexOf(attrname) > -1) {
+      if (match) {
+        return (attrval.search(match) >= 0);
+      } else {
+        return true;
+      }
+    }    
+    return false;
+  }
+
 
   // Possible methods to invoke with $().on[Create|Modify|Text]()
   var methods = {
@@ -87,8 +115,6 @@
         callback = options.callback,
         multi = options.multi || false,
         conditions = options.conditions;
-      cbid++;
-      callback.prototype.cbid = cbid;
 
       // Get/initiate the element's onMutate data.
       this.data('onMutate') || this.data('onMutate', {
@@ -108,16 +134,8 @@
       var om = this.data('onMutate')[type],
         callbacks = om.callbacks,
         // Add the callback to the array of callbacks for the current type.
-        newcb = {
-          callback: callback,
-          multi: multi,
-          cbid: cbid,
-          conditions: conditions,
-          processed: $([])
-        };
+        newcb = new Callback(callback, conditions, multi);
       callbacks.unshift(newcb);
-      
-      console.log(newcb.processed);
 
       // Store the element's current text or attributes if needed.
       if (!MutationObserver && type === MODIFY) {
@@ -126,26 +144,7 @@
       if (type === TEXT) om.text = this.text();
 
       var $this = this,
-        i, changematch,
-        // This method filters out elements that have already been processed by the current callback.
-        // Iterate through the changed attributes and see if there is a match to the modify listener's conditions.
-        checkattrs = function (index, mutation) {
-          var attrname = mutation.attributeName,
-            attrval = $this.attr(attrname),
-            attrs = callbacks[i].conditions ? callbacks[i].conditions[0] : undefined,
-            match = callbacks[i].conditions && callbacks[i].conditions[1] ? callbacks[i].conditions[1] : undefined;
-          if (!attrs || attrs.indexOf(attrname) > -1) {
-            if (typeof (match) !== 'undefined') {
-              if (attrval.search(match) >= 0) {
-                changematch = true;
-                return false;
-              }
-            } else {
-              changematch = true;
-              return false;
-            }
-          }
-        },
+        i, changematch;
 
         // Define our callback for when a mutation is detected.
         mutcallback = om.mutcallback = om.mutcallback || function (mutations) {
@@ -174,7 +173,9 @@
                 if (!MutationObserver) {
                   mutations = mapCompare(newmap, om.attributeMap);
                 }
-                $.each(mutations, checkattrs);
+                for (var j = 0; j < mutations.length; j++) {
+                  changematch = changematch || checkAttrs(mutations[j], $this, callbacks[i]);
+                };
               }
 
               // Compare the text contents of the element to its original text.

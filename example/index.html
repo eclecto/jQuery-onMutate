@@ -11,6 +11,7 @@
   <style type="text/css">
     body {
       font-family: sans-serif;
+      background-color: #eeeeee;
     }
     
     #page {
@@ -43,16 +44,15 @@
     }
     
     .bluebox {
-      background-color: #0000ff;
+      background-color: #167ABD;
     }
     
     .greenbox {
-      background-color: #00ff00;
-      color: #000000;
+      background-color: #4e9911;
     }
     
-    .redbox {
-      background-color: #ff0000;
+    .orangebox {
+      background-color: #f56226;
     }
     
     .container {
@@ -60,13 +60,15 @@
       padding: 16px;
       margin-bottom: 16px;
       border: 1px solid #cccccc;
+      background-color: #ffffff;
+      box-shadow: 0 10px 10px rgba(0,0,0,0.1);
     }
     
     .container:after {
-      content: ".";
+      content: " ";
       clear: both;
+      display: block;
       height: 0;
-      font-size: 1;
     }
     
     p,
@@ -86,12 +88,11 @@
     }
     
     .boxes:after {
-      content: '.';
+      content: ' ';
       clear: both;
       display: block;
       visibility: hidden;
       height: 0;
-      font-size: 0;
     }
     
     fieldset {
@@ -131,6 +132,13 @@
     #ontext .box {
       width: 100%;
     }
+    
+    .comment {
+      margin-top:10px;
+      font-size: 12px;
+      color: #999999;
+      display: none;
+    }
   </style>
 
   <script type="text/javascript" src="../jquery.onmutate.js"></script>
@@ -146,10 +154,10 @@
          *  onCreate listeners
          */
         function ocOnce(elements) {
-          elements.removeClass('bluebox greenbox').addClass('redbox').text('This is a red box.');
+          elements.removeClass('bluebox greenbox').addClass('orangebox').text('This is an orange box.');
         }
         function ocAlways(elements) {
-          elements.removeClass('bluebox redbox').addClass('greenbox').text('This is a green box.');
+          elements.removeClass('bluebox orangebox').addClass('greenbox').text('This is a green box.');
         }
         function ocCount(elements) {
           $('#oncreate .count').text($('#oncreate .box').length + ' boxes');
@@ -266,11 +274,11 @@
             maxHeight: 291
           }).onModify('style', /(?=.*width: 357px;)(?=.*height: 291px)/, function (elements) {
             console.log('big');
-            elements.removeClass('bluebox greenbox').addClass('redbox');
+            elements.removeClass('bluebox greenbox').addClass('orangebox');
           }, true)
           .onModify('style', minmatch, function (elements) {
             console.log('small');
-            elements.removeClass('bluebox redbox').addClass('greenbox');
+            elements.removeClass('bluebox orangebox').addClass('greenbox');
           }, true)
           .onModify('style', function (elements) {
             var pixels = (elements.outerWidth() * elements.outerHeight()).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -369,7 +377,7 @@
         </fieldset>
         <fieldset>
           <label>
-            <input type="checkbox" id="oc-once" checked />Change blue boxes to red, once.</label>
+            <input type="checkbox" id="oc-once" checked />Change blue boxes to orange, once.</label>
           <label>
             <input type="checkbox" id="oc-always" />Change blue boxes to green, always.</label>
           <label>
@@ -400,7 +408,7 @@
           </div>
         </div>
         <div id="other" class="half" style="height:400px">
-          <p>Drag to resize this box. It will turn red at its minimum size and green at its maximum size.</p>
+          <p>Drag to resize this box. It will turn orange at its minimum size and green at its maximum size.</p>
           <div id="resizable" class="box bluebox">This box has 17,900 pixels.</div>
         </div>
       </div>
