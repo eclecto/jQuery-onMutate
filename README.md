@@ -8,15 +8,19 @@ This plugin is dependent on jQuery (tested on version 1.6.4)
 Installation
 ------------
 
-```npm install --save jquery-onmutate```
+```
+npm install --save jquery-onmutate
+```
 
 Usage
 -----
 
-```var onMutate = require('jquery-onmutate');
+```
+var onMutate = require('jquery-onmutate');
 var jQuery = require('jquery');
 
-onMutate(jQuery);```
+onMutate(jQuery);
+```
 
 API
 ===
