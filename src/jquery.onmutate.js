@@ -1,15 +1,27 @@
 /*!
- * jQuery onMutate plugin v1.3-dev
+ * jQuery onMutate plugin v1.4
  * http://jquery.com/
  *
- * Copyright 2014 CROmetrics
+ * Copyright 2016 CROmetrics
  * Released under the MIT license
  * https://github.com/eclecto/jQuery-onCreate/blob/master/LICENSE
  *
- * Date: 2014-12-26T16:10Z
+ * Date: 2016-08-23T09:43Z
  */
 
-(function ($, MutationObserver, document, window) {
+(function(factory) {
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        define(['jquery'], factory);
+    } else if (typeof exports !== 'undefined') {
+        module.exports = factory;
+    } else {
+        factory(jQuery);
+    }
+
+}(function ($, MutationObserver) {
+  if(!$) $ = ($.fn.jquery ? $ : jQuery);
+  if(!MutationObserver) MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver || false;
   var cbid = 0;
 
   // Uncomment this to easily test the setInterval fallback.
@@ -45,7 +57,7 @@
       }
     };
   }
-  
+
   // Callback class to wrap a callback and its properties
   function Callback(callback, conditions, multi) {
     this.callback = callback;
@@ -78,7 +90,7 @@
         });
       }
     });
-    $.each(map2, function (key, value) {
+    $.each(map2, function (key) {
       if (typeof (map1[key]) === 'undefined') {
         mutations.push({
           attributeName: key
@@ -87,7 +99,7 @@
     });
     return mutations;
   }
-  
+
   // Check attributes
   function checkAttrs(mutation, $el, callback) {
     var attrname = mutation.attributeName,
@@ -102,7 +114,7 @@
       } else {
         return true;
       }
-    }    
+    }
     return false;
   }
 
@@ -147,7 +159,7 @@
         i, changematch;
 
         // Define our callback for when a mutation is detected.
-        mutcallback = om.mutcallback = om.mutcallback || function (mutations) {
+        var mutcallback = om.mutcallback = om.mutcallback || function (mutations) {
           callbacks = om.callbacks; // Refresh the callback list.
           // Ignore any DOM changes that this callback makes to prevent infinite loops.
           if (!om.ignore) {
@@ -175,7 +187,7 @@
                 }
                 for (var j = 0; j < mutations.length; j++) {
                   changematch = changematch || checkAttrs(mutations[j], $this, callbacks[i]);
-                };
+                }
               }
 
               // Compare the text contents of the element to its original text.
@@ -193,13 +205,14 @@
 
               if (elements.length > 0 && (type === CREATE || changematch)) {
                 if (type === CREATE) proc = proc.add(elements);
+                callbacks[i].processed = proc;
                 callbacks[i].callback.call($this, elements);
                 // Remove callback from the list if it only runs once.
                 if (!callbacks[i].multi) {
                   callbacks.splice(i, 1);
                 }
               }
-            }          
+            }
             // Update the current values, accounting for any changes the callback(s) might have made.
             if (type === MODIFY) om.attributeMap = attributeMap($this[0]);
             if (type === TEXT) om.text = $this.text();
@@ -351,7 +364,6 @@
     // onText. Usage: onText([match,] callback, multi);
     onText: function () {
       if (this.length === 0) {
-        debug("OnModify: Empty object received.");
         return this;
       }
 
@@ -390,5 +402,4 @@
   $.onCreate = function (selector, callback, multi) {
     $(document).onCreate(selector, callback, multi);
   };
-  //$.onCreate.debug = false;
-})($ && $.fn && $.fn.jquery ? $ : jQuery, window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver || false, document, window);
+}));
