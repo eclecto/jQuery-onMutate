@@ -42,9 +42,9 @@ Attaches a listener to an existing parent element, and executes a callback when 
 
 `$.onCreate()` will attach the onCreate listener to the document, i.e. is the same as `$(document).onCreate()`.
 
-`parent.onCreate('detach'[, callback]);`
+`parent.onCreate('detach');`
 
-This usage shuts off the onCreate listener completely or, optionally, removes only a single callback. The callback passed must be identical to the function used to instantiate onCreate, best done by storing it as a variable.
+This usage shuts off the onCreate listener.
 
 .onModify()
 -----------
@@ -63,9 +63,9 @@ Attaches a listener to a single element, and executes a callback whenever one of
 
 **multi** (boolean) determines whether the observer will continue to poll for changes after the callback executes. If false, the observer will shut itself off after the first qualifying change; otherwise, it will continue to poll.
 
-`element.onModify('detach'[, callback]);`
+`element.onModify('detach');`
 
-This usage shuts off the onModify listener completely or, optionally, removes only a single callback. The callback passed must be identical to the function used to instantiate onMutate, best done by storing it as a variable.
+This usage shuts off the onModify listener.
 
 .onText()
 ---------
@@ -82,9 +82,9 @@ Attaches a listener to a single element, and executes a callback whenever its te
 
 **multi** (boolean) determines whether the observer will continue to poll changes after the callback executes. If false, the observer will shut itself off after the first qualifying change; otherwise, it will continue to poll.
 
-`element.onText('detach'[, callback]);`
+`element.onText('detach');`
 
-This usage shuts off the onText listener completely or, optionally, removes only a single callback. The callback passed must be identical to the function used to instantiate onText, best done by storing it as a variable.
+This usage shuts off the onText listener.
 
 .onMutate()
 -----------
