@@ -1,6 +1,6 @@
 {
   "name": "jquery-onmutate",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "A MutationObserver wrapper for jQuery, allowing you to listen for element creation, attribute modification, and text changes.",
   "main": "jquery.onmutate.js",
   "directories": {
