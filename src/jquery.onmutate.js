@@ -6,22 +6,24 @@
  * Released under the MIT license
  * https://github.com/eclecto/jQuery-onCreate/blob/master/LICENSE
  *
- * Date: 2016-08-23T09:43Z
+ * Date: 2016-08-23T13:12Z
  */
 
-(function(factory) {
-    'use strict';
-    if (typeof define === 'function' && define.amd) {
-        define(['jquery'], factory);
-    } else if (typeof exports !== 'undefined') {
-        module.exports = factory;
-    } else {
-        factory(jQuery);
-    }
+/* global define, module, setTimeout */
+
+(function (factory) {
+  'use strict';
+  if (typeof define === 'function' && define.amd) {
+    define(['jquery'], factory);
+  } else if (typeof exports !== 'undefined') {
+    module.exports = factory;
+  } else {
+    factory(jQuery);
+  }
 
 }(function ($, MutationObserver) {
-  if(!$) $ = ($.fn.jquery ? $ : jQuery);
-  if(!MutationObserver) MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver || false;
+  if (!$) $ = ($.fn.jquery ? $ : jQuery);
+  if (!MutationObserver) MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver || false;
   var cbid = 0;
 
   // Uncomment this to easily test the setInterval fallback.
@@ -103,10 +105,10 @@
   // Check attributes
   function checkAttrs(mutation, $el, callback) {
     var attrname = mutation.attributeName,
-        attrval = $el.attr(attrname),
-        conditions = callback.conditions || false,
-        attrs = conditions ? conditions[0] : false,
-        match = conditions && conditions[1] ? conditions[1] : false;
+      attrval = $el.attr(attrname),
+      conditions = callback.conditions || false,
+      attrs = conditions ? conditions[0] : false,
+      match = conditions && conditions[1] ? conditions[1] : false;
     // If no attrs are set or the mutation affects one of the targeted attributes
     if (!attrs || attrs.indexOf(attrname) > -1) {
       if (match) {
@@ -129,7 +131,7 @@
         conditions = options.conditions;
 
       // Get/initiate the element's onMutate data.
-      this.data('onMutate') || this.data('onMutate', {
+      if(!this.data('onMutate')) this.data('onMutate', {
         create: {
           callbacks: [],
           ignore: false
@@ -158,79 +160,77 @@
       var $this = this,
         i, changematch;
 
-        // Define our callback for when a mutation is detected.
-        var mutcallback = om.mutcallback = om.mutcallback || function (mutations) {
-          callbacks = om.callbacks; // Refresh the callback list.
-          // Ignore any DOM changes that this callback makes to prevent infinite loops.
-          if (!om.ignore) {
-            om.ignore = true;
+      // Define our callback for when a mutation is detected.
+      var mutcallback = om.mutcallback = om.mutcallback || function (mutations) {
+        callbacks = om.callbacks; // Refresh the callback list.
+        // Ignore any DOM changes that this callback makes to prevent infinite loops.
+        if (!om.ignore) {
+          om.ignore = true;
+        } else {
+          return;
+        }
+        
+        var newmap, newtext;
+        if (type === MODIFY) newmap = attributeMap($this[0]);
+        if (type === TEXT) newtext = $this.text();
+
+        for (i = callbacks.length - 1; i >= 0; i--) {
+          console.log(callbacks[i]);
+          var selected = (type === CREATE ? $(callbacks[i].conditions, $this) : $this);
+          var proc = callbacks[i].processed;
+          var elements = selected.not(proc);
+
+          // Validate changed attributes for modify observers.
+          if (type === MODIFY) {
+            changematch = false;
+            if (!MutationObserver) {
+              mutations = mapCompare(newmap, om.attributeMap);
+            }
+            for (var j = 0; j < mutations.length; j++) {
+              changematch = changematch || checkAttrs(mutations[j], $this, callbacks[i]);
+            }
+          }
+
+          // Compare the text contents of the element to its original text.
+          if (type === TEXT) {
+            changematch = false;
+            var cond = callbacks[i].conditions;
+            if (newtext !== om.text) {
+              if (cond) {
+                changematch = newtext.search(cond) > -1;
+              } else {
+                changematch = true;
+              }
+            }
+          }
+
+          if (elements.length > 0 && (type === CREATE || changematch)) {
+            if (type === CREATE) proc = proc.add(elements);
+            callbacks[i].processed = proc;
+            callbacks[i].callback.call($this, elements);
+            // Remove callback from the list if it only runs once.
+            if (!callbacks[i].multi) {
+              callbacks.splice(i, 1);
+            }
+          }
+          // Update the current values, accounting for any changes the callback(s) might have made.
+          if (type === MODIFY) om.attributeMap = attributeMap($this[0]);
+          if (type === TEXT) om.text = $this.text();
+        }
+
+        // We've safely iterated through the callbacks, so don't ignore this master Callback anymore.
+        // Additional mutation events apparently fire after this entire function, so we set ignore to false with an extremely small delay.
+        if (om.ignore) setTimeout(function () {
+          om.ignore = false;
+        }, 1);
+        if (callbacks.length === 0) {
+          if (observer) {
+            observer.disconnect();
           } else {
-            return;
+            return true;
           }
-          // Find elements that have not already been processed by this observer.
-          var selected = type === CREATE ? $(conditions, $this) : $this;
-
-          if (selected.length > 0) {
-            var newmap, newtext;
-            if (type === MODIFY) newmap = attributeMap($this[0]);
-            if (type === TEXT) newtext = $this.text();
-
-            for (i = callbacks.length - 1; i >= 0; i--) {
-              var proc = callbacks[i].processed;
-              var elements = selected.not(proc);
-
-              // Validate changed attributes for modify observers.
-              if (type === MODIFY) {
-                changematch = false;
-                if (!MutationObserver) {
-                  mutations = mapCompare(newmap, om.attributeMap);
-                }
-                for (var j = 0; j < mutations.length; j++) {
-                  changematch = changematch || checkAttrs(mutations[j], $this, callbacks[i]);
-                }
-              }
-
-              // Compare the text contents of the element to its original text.
-              if (type === TEXT) {
-                changematch = false;
-                var cond = callbacks[i].conditions;
-                if (newtext !== om.text) {
-                  if (cond) {
-                    changematch = newtext.search(cond) > -1;
-                  } else {
-                    changematch = true;
-                  }
-                }
-              }
-
-              if (elements.length > 0 && (type === CREATE || changematch)) {
-                if (type === CREATE) proc = proc.add(elements);
-                callbacks[i].processed = proc;
-                callbacks[i].callback.call($this, elements);
-                // Remove callback from the list if it only runs once.
-                if (!callbacks[i].multi) {
-                  callbacks.splice(i, 1);
-                }
-              }
-            }
-            // Update the current values, accounting for any changes the callback(s) might have made.
-            if (type === MODIFY) om.attributeMap = attributeMap($this[0]);
-            if (type === TEXT) om.text = $this.text();
-          }
-
-          // We've safely iterated through the callbacks, so don't ignore this master Callback anymore.
-          // Additional mutation events apparently fire after this entire function, so we set ignore to false with an extremely small delay.
-          if (om.ignore) setTimeout(function () {
-            om.ignore = false;
-          }, 1);
-          if (callbacks.length === 0) {
-            if (observer) {
-              observer.disconnect();
-            } else {
-              return true;
-            }
-          }
-        };
+        }
+      };
       // Sanity Check: If this is a create listener, run the callback on initialization to see if there is already a valid element.
       if (type === CREATE && mutcallback()) {
         return this;
@@ -396,6 +396,14 @@
           type: TEXT
         });
       }
+    },
+
+    // onText. Usage: onMutate(type, ...);
+    onMutate: function () {
+      var args = Array.prototype.slice.call(arguments),
+        type = args.shift(),
+        typeMethod = 'on' + type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+      if ($.fn[typeMethod]) $.fn[typeMethod].apply(this, args);
     }
   });
   // Use $.onCreate as a shortcut to onCreate at the document level.

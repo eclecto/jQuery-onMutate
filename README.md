@@ -1,59 +1,103 @@
 jQuery-onMutate
 ===============
 
-This plugin is a wrapper for the MutationObserver class, with a fallback to setInterval, so you can execute code when elements matching a given selector are created. It includes three methods: .onCreate(), .onModify(), and .onText() (note that onMutate is not a method)
+This plugin is a wrapper for the MutationObserver class, with a fallback to setInterval, so you can execute code when elements matching a given selector are created or have their attributes or text changed. It includes three methods: .onCreate(), .onModify(), .onText(), and .onMutate().
 
 This plugin is dependent on jQuery (tested on version 1.6.4)
 
-**onCreate:**
+Installation
+------------
 
-.onCreate() attaches a listener to an existing parent element, and executes a callback when a new child element matching a given selector is created. If a matching element already exists, the callback will execute immediately.
+```npm install --save jquery-onmutate```
 
-`jQuery(parent).onCreate(selector, callback[, multi = false]);`
+Usage
+-----
 
-`parent` is a single parent element that is a known ancestor of the created element(s). In case of multiple elements, only the first will be used.
+```var onMutate = require('jquery-onmutate');
+var jQuery = require('jquery');
 
-`selector` is a valid jQuery selector for the new element(s) using the parent element as a context. That is, onCreate will poll for a valid new element using `jQuery(selector, parent)`
+onMutate(jQuery);```
 
-`callback` is a function to execute when a new matching element is created. It receives one argument, `elements`, which is a jQuery object containing the new elements.
+API
+===
 
-`multi` determines whether the observer will continue to poll for new elements after a match is found. If false, the observer will shut itself off after the first match; otherwise, it will continue to poll, but will only operate on each created element once.
+.onCreate()
+-----------
 
-**onModify:**
+Attaches a listener to an existing parent element, and executes a callback when a new descendent element matching a given selector is created. If a matching element already exists, the callback will execute immediately.
 
-.onModify() attaches a listener to a single element, and executes a callback whenever one of its attributes is changed with optional conditions.
+`parent.onCreate(selector, callback[, multi = false]);`
 
-`jQuery(element).onModify([attributes[, match,]] callback[, multi = false]);`
+**parent** (jQuery) a single parent element that is a known ancestor of the created element(s). Only the first element in the set will be used.
 
-`element` is the element to be observed.
+**selector** (string) is a valid jQuery selector for the new element(s). OnMutate will poll for a valid new element using `jQuery(selector, parent)`
 
-`attributes` is a space-separated list of attributes to watch. If omitted, the callback will execute on any attribute change.
+**callback** (function) the callback executed when a new matching element is created. It receives one argument, **elements**, which is a jQuery object containing the new elements.
 
-`match` is an optional string or RegEx that will be matched against the value of any modified attribute(s). If you set a match then you must also specify the `attributes` to watch.
+**multi** (boolean) determines whether the observer will continue to poll for new elements after a match is found. If false, the observer will shut itself off after the first match(es); this includes if matching elements already exist when onCreate is called. Otherwise, it will continue to poll, but will only operate on each created element once.
 
-`callback` is the function to execute when a qualifying change is made to the element's attributes. It receives one argument, `element`, which is a jQuery object containing the affected element.
+`$.onCreate()` will attach the onCreate listener to the document, i.e. is the same as `$(document).onCreate()`.
 
-`multi` determines whether the observer will continue to poll for changes after the callback executes. If false, the observer will shut itself off after the first qualifying change; otherwise, it will continue to poll.
+`parent.onCreate('detach'[, callback]);`
 
-**onText:**
+This usage shuts off the onCreate listener completely or, optionally, removes only a single callback. The callback passed must be identical to the function used to instantiate onCreate, best done by storing it as a variable.
 
-.onText() attaches a listener to a single element, and executes a callback whenever its text content changes with optional conditions.
+.onModify()
+-----------
 
-`jQuery(element).onText([match,] callback[, multi = false])`
+Attaches a listener to a single element, and executes a callback whenever one of its attributes is changed with optional conditions. While the callback executes the listener will be momentarily shut off, to prevent infinite loops if the callback also changes the element's attributes.
 
-`element` is the element to be observed.
+`element.onModify([attributes[, match,]] callback[, multi = false]);`
 
-`match` is an optional string or RegEx that will be matched against element's text content as read with jQuery's .text() method.
+**element** (jQuery) the element to be observed.
 
-`callback` is the function to execute when a qualifying change is made to the element's text content. It receives one argument, `element`, which is a jQuery object containing the affected element.
+**attributes** (string) is a space-separated list of attributes to watch. If omitted, the callback will execute on any attribute change.
 
-`multi` determines whether the observer will continue to poll changes after the callback executes. If false, the observer will shut itself off after the first qualifying change; otherwise, it will continue to poll.
+**match** (string|RegExp) is a string or RegExp that will be matched against the new value of any modified attribute(s). If you set a match then you must also specify the **attributes** to watch.
 
-**Additional Notes:**
+**callback** (function) is the function to execute when a qualifying change is made to the element's attributes. It receives one argument, **element**, which is a jQuery object containing the affected element.
 
-- Just to reiterate, there is currently no actual .onMutate().
+**multi** (boolean) determines whether the observer will continue to poll for changes after the callback executes. If false, the observer will shut itself off after the first qualifying change; otherwise, it will continue to poll.
+
+`element.onModify('detach'[, callback]);`
+
+This usage shuts off the onModify listener completely or, optionally, removes only a single callback. The callback passed must be identical to the function used to instantiate onMutate, best done by storing it as a variable.
+
+.onText()
+---------
+
+Attaches a listener to a single element, and executes a callback whenever its text content changes with optional conditions. While the callback executes the listener will be momentarily shut off, to prevent infinite loops if the callback also changes the element's text.
+
+`element.onText([match,] callback[, multi = false])`
+
+**element** (jQuery) is the element to be observed.
+
+**match** (string|RegExp) is an optional string or RegExp that will be matched against element's new text content, as read with jQuery's `.text()` method.
+
+**callback** (function) is the function to execute when a qualifying change is made to the element's text content. It receives one argument, `element`, which is a jQuery object containing the affected element.
+
+**multi** (boolean) determines whether the observer will continue to poll changes after the callback executes. If false, the observer will shut itself off after the first qualifying change; otherwise, it will continue to poll.
+
+`element.onText('detach'[, callback]);`
+
+This usage shuts off the onText listener completely or, optionally, removes only a single callback. The callback passed must be identical to the function used to instantiate onText, best done by storing it as a variable.
+
+.onMutate()
+-----------
+
+An alternative way to call one of the methods above, passing the type of mutation as an argument.
+
+`element.onMutate(type, ...)`
+
+**element** (jQuery) is the element to be observed.
+
+**type** (string) should be "create", "modify", or "text".
+
+Additional arguments are specific to the method being invoked.
+
+Additional Notes:
+-----------------
 - .onCreate() internally creates a MutationObserver that observes with the `childList` and `subtree` options.
 - .onModify() internally creates a MutationObserver that observes with the `attributes` option.
-- .onText() internally creates a MutationObserver that observes with the `characterData`, `childList`, and `subtree` options. This is so it can recognize text node insertion and deletion as a text change.
+- .onText() internally creates a MutationObserver that observes with the `characterData`, `childList`, and `subtree` options. This is so it can recognize text node insertion and deletion as a text change, as well as observing characterData changes to existing text nodes.
 - For browsers that do not support MutationObserver, this plugin will check all observed elements at 50ms intervals for changes that match the conditions. Because of this, there can be a slight delay/flash before the callback executes for these browsers.
-- .onModify() and .onText() will both momentarily shut themselves off while associated callbacks execute, so if the callback makes further changes to the element's attributes or text it will not create an infinite loop.

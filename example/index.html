@@ -47,6 +47,10 @@
       background-color: #167ABD;
     }
     
+    .redbox {
+      background-color: #b22222;
+    }
+    
     .greenbox {
       background-color: #4e9911;
     }
@@ -61,7 +65,7 @@
       margin-bottom: 16px;
       border: 1px solid #cccccc;
       background-color: #ffffff;
-      box-shadow: 0 10px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
     }
     
     .container:after {
@@ -134,14 +138,14 @@
     }
     
     .comment {
-      margin-top:10px;
+      margin-top: 10px;
       font-size: 12px;
       color: #999999;
       display: none;
     }
   </style>
 
-  <script type="text/javascript" src="../jquery.onmutate.js"></script>
+  <script type="text/javascript" src="../src/jquery.onmutate.js"></script>
 
   <script type="text/javascript">
     (function ($) {
@@ -154,15 +158,20 @@
          *  onCreate listeners
          */
         function ocOnce(elements) {
-          elements.removeClass('bluebox greenbox').addClass('orangebox').text('This is an orange box.');
+          elements.removeClass().addClass('box orangebox').text('This is an orange box.');
         }
+        function ocRed(elements) {
+          elements.removeClass().addClass('box bluebox').text('This is a blue box.');
+        }
+
         function ocAlways(elements) {
-          elements.removeClass('bluebox orangebox').addClass('greenbox').text('This is a green box.');
+          elements.removeClass().addClass('box greenbox').text('This is a green box.');
         }
+
         function ocCount(elements) {
           $('#oncreate .count').text($('#oncreate .box').length + ' boxes');
         }
-        
+
         ocboxes.onCreate('.bluebox', ocOnce);
 
         $('#oc-once').change(function () {
@@ -173,9 +182,17 @@
           }
         });
 
+        $('#oc-red').change(function () {
+          if (this.checked) {
+            ocboxes.onCreate('.redbox', ocRed);
+          } else {
+            ocboxes.onCreate('detach', ocRed);
+          }
+        });
+
         $('#oc-always').change(function () {
           if (this.checked) {
-            ocboxes.onCreate('.bluebox', ocAlways, true);
+            ocboxes.onCreate('.box', ocAlways, true);
           } else {
             ocboxes.onCreate('detach', ocAlways);
           }
@@ -183,7 +200,7 @@
 
         $('#oc-count').change(function () {
           if (this.checked) {
-            ocboxes.onCreate('.bluebox', ocCount, true);
+            ocboxes.onCreate('.box', ocCount, true);
           } else {
             ocboxes.onCreate('detach', ocCount);
           }
@@ -194,12 +211,14 @@
           $('#oncreate').find('input[type=checkbox]').removeAttr('checked');
         });
 
-
         /*
          *  onCreate behavior
          */
-        $('#oncreate input.create').click(function () {
+        $('#oncreate input.createBlue').click(function () {
           $('#oncreate .boxes').append('<div class="box bluebox">This is a blue box</div>');
+        });
+        $('#oncreate input.createRed').click(function () {
+          $('#oncreate .boxes').append('<div class="box redbox">This is a red box</div>');
         });
         $('#oncreate input.remove').click(function () {
           $('#oncreate .boxes').empty();
@@ -372,14 +391,17 @@
         <p>Click the button to create a blue box. onCreate listeners will act on it depending on the behavior you choose.</p>
 
         <fieldset>
-          <input type="button" class="create" value="Create a blue box" />
+          <input type="button" class="createBlue" value="Create a blue box" />
+          <input type="button" class="createRed" value="Create a red box" />
           <input type="button" class="remove" value="Remove all boxes" />
         </fieldset>
         <fieldset>
           <label>
             <input type="checkbox" id="oc-once" checked />Change blue boxes to orange, once.</label>
           <label>
-            <input type="checkbox" id="oc-always" />Change blue boxes to green, always.</label>
+            <input type="checkbox" id="oc-red" />Change red boxes to blue, once.</label>
+          <label>
+            <input type="checkbox" id="oc-always" />Change all boxes to green, always.</label>
           <label>
             <input type="checkbox" id="oc-count" />Count the boxes.</label>
           <input type="button" id="oc-disable" value="Do nothing." />
@@ -414,7 +436,6 @@
       </div>
       <div id="ontext" class="container">
         <h2>onText</h2>
-        <div class="count">0 boxes</div>
         <p>Click on the box to change its text, making it claim it's green. onText listeners will act on it according to the behavior you choose.</p>
 
         <fieldset>
